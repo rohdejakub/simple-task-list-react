@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Table, Button, Form, Icon } from "semantic-ui-react";
 
+import Controls from './Controls'
 class TasksTable extends Component {
   state = {
     taskName: () => `NewTask ${this.state.tasks.length + 1}`,
@@ -25,8 +26,13 @@ class TasksTable extends Component {
       ]
     }, () => {this.setState({taskName: () => `NewTask ${this.state.tasks.length + 1}`});
   this.setState({subtasksQuantity: 1})});
-    
   };
+
+  deleteTask = (index) => {
+    this.setState({tasks: this.state.tasks.filter((_,i) => i !== index)})
+  };
+
+
   render() {
     const { tasks } = this.state;
     
@@ -46,7 +52,7 @@ class TasksTable extends Component {
               <Table.Cell>
                 {task.subtasksDone + " / " + task.subtasksNumber}
               </Table.Cell>
-              <Table.Cell>Control Panel</Table.Cell>
+              <Table.Cell><Controls deleteTask ={() => this.deleteTask(i)}/></Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
