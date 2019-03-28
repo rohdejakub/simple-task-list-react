@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Table, Button, Form, Icon } from "semantic-ui-react";
 
-import Controls from './Controls'
+import Controls from "./Controls";
 class TasksTable extends Component {
   state = {
     taskName: () => `NewTask ${this.state.tasks.length + 1}`,
@@ -10,32 +10,72 @@ class TasksTable extends Component {
       { name: "Task1", subtasksNumber: 4, subtasksDone: 2, isDone: false }
     ]
   };
-  
-  handleChange = (e) => this.setState({ [e.target.name]: e.target.value })
+
+  handleChange = e => this.setState({ [e.target.name]: e.target.value });
 
   addNewTask = event => {
+    this.setState(
+      {
+        tasks: [
+          ...this.state.tasks,
+          {
+            name: event.target.taskName.value,
+            subtasksNumber: event.target.subtasksQuantity.value,
+            subtasksDone: 0,
+            isDone: false
+          }
+        ]
+      },
+      () => {
+        this.setState({
+          taskName: () => `NewTask ${this.state.tasks.length + 1}`
+        });
+        this.setState({ subtasksQuantity: 1 });
+      }
+    );
+  };
+
+  deleteTask = index => {
+    this.setState({ tasks: this.state.tasks.filter((_, i) => i !== index) });
+  };
+
+  subtaskDone = index => {
     this.setState({
-      tasks: [
-        ...this.state.tasks,
-        {
-          name: event.target.taskName.value,
-          subtasksNumber: event.target.subtasksQuantity.value,
-          subtasksDone: 0,
-          isDone: false
+      tasks: this.state.tasks.map((task, i) => {
+        if (i === index) {
+          return {
+            ...task,
+            subtasksDone:
+              task.subtasksDone < task.subtasksNumber
+                ? task.subtasksDone + 1
+                : task.subtasksNumber
+          };
+        } else {
+          return task;
         }
-      ]
-    }, () => {this.setState({taskName: () => `NewTask ${this.state.tasks.length + 1}`});
-  this.setState({subtasksQuantity: 1})});
+      })
+    });
   };
 
-  deleteTask = (index) => {
-    this.setState({tasks: this.state.tasks.filter((_,i) => i !== index)})
-  };
-
+  makeItDone = index => {
+    this.setState({
+      tasks: this.state.tasks.map((task, i) => {
+        if (i === index) {
+          return {
+            ...task,
+            isDone: true,
+            subtasksDone: task.subtasksNumber
+          };
+        } else {
+          return task;
+        }
+      })
+    });
+  }
 
   render() {
     const { tasks } = this.state;
-    
+
     return (
       <Table celled compact definition textAlign="center">
         <Table.Header fullWidth>
@@ -47,12 +87,19 @@ class TasksTable extends Component {
         </Table.Header>
         <Table.Body>
           {tasks.map((task, i) => (
-            <Table.Row key={i}>
+            <Table.Row key={i} positive={task.isDone}>
               <Table.Cell>{task.name}</Table.Cell>
               <Table.Cell>
                 {task.subtasksDone + " / " + task.subtasksNumber}
               </Table.Cell>
-              <Table.Cell><Controls deleteTask ={() => this.deleteTask(i)}/></Table.Cell>
+              <Table.Cell>
+                <Controls
+                  deleteTask={() => this.deleteTask(i)}
+                  increaseTask={() => this.subtaskDone(i)}
+                  isDone= {task.isDone}
+                  makeItDone = {() => this.makeItDone(i)}
+                />
+              </Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
@@ -66,7 +113,11 @@ class TasksTable extends Component {
                     placeholder={"NewTask"}
                     control="input"
                     type="text"
-                    value={typeof this.state.taskName === 'string'? this.state.taskName : this.state.taskName()}
+                    value={
+                      typeof this.state.taskName === "string"
+                        ? this.state.taskName
+                        : this.state.taskName()
+                    }
                     name="taskName"
                     onChange={this.handleChange}
                     required
